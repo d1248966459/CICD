@@ -1,0 +1,62 @@
+name: Xcode - Build and Test with Fastlane
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: Build and Test using Fastlane
+    runs-on: macos-latest
+
+    steps:
+      # 1️⃣ 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ 安装 Ruby（Fastlane 依赖）
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2 # 根据项目需要修改
+
+      # 3️⃣ 安装 Fastlane（全局安装）
+      - name: Install Fastlane
+        run: |
+          sudo gem install fastlane -NV
+          fastlane --version
+
+      # 4️⃣ 安装 CocoaPods（如果需要）
+      - name: Install CocoaPods
+        run: |
+          sudo gem install cocoapods
+          pod --version
+
+      # 5️⃣ 安装 Pod 依赖（仅当 Podfile 存在时）
+      - name: Install Pods
+        run: |
+          if [ -f "Podfile" ]; then
+            pod install
+          fi
+
+      # 6️⃣ 自动检测 Xcode 项目类型
+      - name: Detect Xcode project type
+        id: project
+        run: |
+          if ls *.xcworkspace 1> /dev/null 2>&1; then
+            echo "file_type=workspace" >> $GITHUB_OUTPUT
+            echo "file_name=$(ls *.xcworkspace | head -n 1)" >> $GITHUB_OUTPUT
+          elif ls *.xcodeproj 1> /dev/null 2>&1; then
+            echo "file_type=project" >> $GITHUB_OUTPUT
+            echo "file_name=$(ls *.xcodeproj | head -n 1)" >> $GITHUB_OUTPUT
+          else
+            echo "No Xcode project or workspace found"
+            exit 1
+          fi
+
+      # 7️⃣ 执行 Fastlane lane
+      - name: Run Fastlane test lane
+        run: |
+          fastlane testlane project_type:${{ steps.project.outputs.file_type }} project_file:${{ steps.project.outputs.file_name }}
