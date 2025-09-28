@@ -20,18 +20,18 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.2 # 根据项目需要修改
+          ruby-version: 3.4.6 # 根据项目需要修改
 
       # 3️⃣ 安装 Fastlane（全局安装）
       - name: Install Fastlane
         run: |
-          sudo gem install fastlane -NV
+          sudo gem install fastlane -v 2.228.0 -NV
           fastlane --version
 
       # 4️⃣ 安装 CocoaPods（如果需要）
       - name: Install CocoaPods
         run: |
-          sudo gem install cocoapods
+          sudo gem install cocoapods -v 1.16.2  # 替换为你需要的版本
           pod --version
 
       # 5️⃣ 安装 Pod 依赖（仅当 Podfile 存在时）
